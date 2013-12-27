@@ -53,7 +53,8 @@
             this.MinimizeBox = false;
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Bulk Photo Rename v.20131206a";
+            this.Text = "Bulk Photo Rename v.20131226a";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 

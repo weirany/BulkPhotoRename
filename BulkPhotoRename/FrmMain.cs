@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BulkPhotoRename
@@ -18,9 +15,9 @@ namespace BulkPhotoRename
         public FrmMain()
         {
             InitializeComponent();
-            this.AllowDrop = true;
-            this.DragEnter += new DragEventHandler(Form1_DragEnter);
-            this.DragDrop += new DragEventHandler(Form1_DragDrop);
+            AllowDrop = true;
+            DragEnter += Form1_DragEnter;
+            DragDrop += Form1_DragDrop;
         }
 
         void Form1_DragEnter(object sender, DragEventArgs e)
@@ -73,24 +70,26 @@ namespace BulkPhotoRename
             if (!string.IsNullOrEmpty(msg))
             {
                 MessageBox.Show(msg);
-            }
-            else
-            {
-                // passed checking, start renaming
-                foreach (var file in files)
-                {
-                    System.IO.File.Move(file,
-                        Path.Combine(Path.GetDirectoryName(file),
-                        GetDateTakenFromImage(file).ToString("yyyyMMddHHmmssfff") + Path.GetExtension(file)));
-                }
-                MessageBox.Show("All done.");
+                if (MessageBox.Show(this, "Continue?", "", MessageBoxButtons.YesNo) == DialogResult.No) return;
             }
 
+            // passed checking, start renaming
+            foreach (var file in files)
+            {
+                // skip bad files
+                if(filesMissingTimestamp.Contains(file)) continue;
+                if(filesHaveSameTimestamp.ContainsKey(file)) continue;
+
+                File.Move(file,
+                    Path.Combine(Path.GetDirectoryName(file),
+                    GetDateTakenFromImage(file).ToString("yyyyMMddHHmmssfff") + Path.GetExtension(file)));
+            }
+            MessageBox.Show("All done.");
         }
 
         //we init this once so that if the function is repeatedly called
         //it isn't stressing the garbage man
-        private static Regex r = new Regex(":");
+        private static readonly Regex r = new Regex(":");
 
         //retrieves the datetime WITHOUT loading the whole image
         public static DateTime GetDateTakenFromImage(string path)
@@ -105,7 +104,7 @@ namespace BulkPhotoRename
                         string dateTaken = r.Replace(Encoding.UTF8.GetString(propItem.Value), "-", 2);
                         return DateTime.Parse(dateTaken);
                     }
-                    else return DateTime.MinValue;
+                    return DateTime.MinValue;
                 }
             }
         }
